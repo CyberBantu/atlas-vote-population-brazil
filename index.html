@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atlas do Voto e da População: Brasil 2024 a 2026 (IBGE e TSE)</title>
+  <meta name="description" content="Jornalismo visual sobre a população dos 5.571 municípios brasileiros (IBGE 2024 e Censo 2022) e o ciclo eleitoral 2024 a 2026 (TSE, governadores, senadores, deputados e ajuste fiscal).">
+  <link rel="stylesheet" href="styles/fonts.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+  <!-- Cenário 3D de Fundo: Três Poderes com mudança de ângulo em perspectiva no scroll + mouse -->
+  <div id="bg-tres-poderes" aria-hidden="true">
+    <div id="bg-poder-rig" class="bg-poder-rig">
+      <div id="bg-layer-congresso" class="bg-poder-layer active" style="background-image:url('assets/img/poder-congresso.jpg')"></div>
+      <div id="bg-layer-planalto" class="bg-poder-layer" style="background-image:url('assets/img/poder-planalto.jpg')"></div>
+      <div id="bg-layer-stf" class="bg-poder-layer" style="background-image:url('assets/img/poder-stf.jpg')"></div>
+    </div>
+    <div class="bg-poder-vignette"></div>
+  </div>
+
+  <!-- HUD discreto dos Três Poderes 3D (mostra apenas qual imagem está ao fundo) -->
+  <div class="bg-camera-hud" aria-label="Cenário de fundo dos Três Poderes">
+    <button type="button" class="active" data-bg-poder="congresso">Congresso</button>
+    <button type="button" data-bg-poder="planalto">Planalto</button>
+    <button type="button" data-bg-poder="stf">STF</button>
+  </div>
+
+  <!-- Barra de progresso no topo -->
+  <div id="scroll-progress" role="progressbar" aria-label="Progresso de leitura"></div>
+
+  <!-- Tooltip Flutuante D3 -->
+  <div id="d3-tooltip" role="status" aria-live="polite"></div>
+
+  <!-- Controles flutuantes no canto superior direito (sem barra de abas) -->
+  <div class="corner-controls">
+    <a href="#sec-comparador" class="corner-btn">Comparar Municípios</a>
+    <a href="#sec-explorador" class="corner-btn">Buscar Cidade</a>
+    <button type="button" id="btn-theme-toggle" class="corner-btn" aria-label="Alternar modo claro e escuro">☾ Modo Escuro</button>
+  </div>
+
+  <!-- Header centralizado estilo editorial -->
+  <header class="pudding-header">
+    <a href="#sec-hero" class="wordmark-link" aria-label="Atlas do Voto e da População">
+      <span class="wordmark-title">Atlas do Voto e da População</span>
+      <span class="wordmark-sub">BRASIL 2024 A 2026 · DADOS OFICIAIS DO IBGE E DO TSE</span>
+    </a>
+  </header>
+
+  <main id="content">
+
+    <!-- ======================================================================
+         1. ABERTURA: GLOBO 3D COM MAPA-MÚNDI, AMÉRICA LATINA E BRASIL
+         ====================================================================== -->
+    <section id="sec-hero">
+      <div>
+        <span class="kicker">JORNALISMO VISUAL · POPULAÇÃO E CICLO ELEITORAL 2024 A 2026</span>
+        <p class="opening-line">
+          Em 2024, o Brasil alcançou 212,6 milhões de habitantes distribuídos por 5.571 municípios oficiais.
+          Logo depois, 155,9 milhões de eleitores redesenharam as prefeituras que agora sustentam a corrida de 2026 para governos estaduais, Senado, Câmara e Presidência.
+        </p>
+        <h1>
+          Como <mark class="pen">320 cidades</mark> concentram metade do Brasil e como os <em>5.571 municípios</em> decidem 2026
+        </h1>
+        <p class="byline">
+          Base completa do <strong>IBGE (Estimativas 2024 e Censo 2022)</strong> cruzada com o <strong>TSE (Eleições 2024 e Congresso)</strong>
+          <span class="clip-pop" tabindex="0">
+            <span class="clip-tag">Notícia IBGE ↗</span>
+            <span class="pop-card">
+              <span class="pop-source">IBGE · DOU</span><span class="pop-date">29 Ago 2024</span>
+              <span class="pop-title">População do Brasil chega a 212,6 milhões; São Paulo tem 13.929 vezes mais moradores que Serra da Saudade (MG).</span>
+            </span>
+          </span>
+        </p>
+
+        <div class="hero-stat-strip">
+          <div class="hero-stat-box">
+            <b data-counter="212583750">212.583.750</b>
+            <span>Habitantes (IBGE 2024)</span>
+          </div>
+          <div class="hero-stat-box">
+            <b data-counter="5571">5.571</b>
+            <span>Municípios em 27 UFs</span>
+          </div>
+          <div class="hero-stat-box">
+            <b data-counter="155912680">155.912.680</b>
+            <span>Eleitores Aptos (TSE)</span>
+          </div>
+        </div>
+
+        <details class="saiba-mais">
+          <summary>＋ Saiba mais sobre este atlas e fontes oficiais</summary>
+          <div class="saiba-body">
+            Role a página devagar: cada bloco de texto atualiza automaticamente o gráfico ao lado e destaca os
+            <strong>marcadores numerados (①, ②, ③, ④)</strong> com notícias reais. Os dados cobrem <strong>todos os 5.571 municípios oficiais</strong> via API do IBGE (Tabelas SIDRA 6579 e 4714) e dados públicos do TSE.
+            <div class="saiba-sources">
+              <a href="https://www.ibge.gov.br/estatisticas/sociais/populacao/9103-estimativas-de-populacao.html" target="_blank" rel="noopener">IBGE Estimativas 2024 ↗</a>
+              <a href="https://sidra.ibge.gov.br/tabela/6579" target="_blank" rel="noopener">SIDRA Tabela 6579 ↗</a>
+              <a href="https://dadosabertos.tse.jus.br/" target="_blank" rel="noopener">TSE Dados Abertos ↗</a>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div id="globe-stage" aria-label="Globo 3D interativo com Mapa-Múndi, América Latina e Brasil">
+        <div class="globe-legend-bar">
+          <span class="globe-badge">GLOBO 3D · MAPA-MÚNDI E AMÉRICA LATINA</span>
+          <span class="globe-badge" style="color:var(--wnba-red)">BARRAS = POPULAÇÃO DAS 27 UFs</span>
+        </div>
+        <div id="globe-canvas-wrap"></div>
+        <div class="globe-controls">
+          <button type="button" id="btn-globe-focus" class="chip-btn">Focar no Brasil (27 UFs)</button>
+          <button type="button" id="btn-globe-spin" class="chip-btn active">Pausar Giro</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         2. ATO I: A TRANSIÇÃO DEMOGRÁFICA (SCROLLYTELLING GRADUAL + MARCADORES)
+         ====================================================================== -->
+    <section id="sec-panorama" class="act">
+      <h2 class="act-title">De 93 milhões a 212,6 milhões: a freada demográfica</h2>
+      <p class="act-dek">
+        Role pelos 4 marcos históricos abaixo. Os pinos numerados no gráfico mostram onde as notícias e os Censos mudaram a trajetória do país.
+      </p>
+
+      <div class="scrolly-theater">
+        <div class="scrolly-steps-col">
+          <div class="step on" data-hist-year="1980" data-fact-banner="fact-banner-panorama" data-fact-badge="FATO ① · CENSO 1980" data-fact-headline="Êxodo rural: Brasil cresce 2,48% ao ano e população urbana passa de 67%" data-fact-source="IBGE · Censo 1980">
+            <div class="step-card">
+              <div><span class="step-num">1</span><span class="kicker">1970 A 1980 · O BOOM URBANO</span></div>
+              <h3>Quando o Brasil ganhava 2,6 milhões de pessoas por ano</h3>
+              <p class="step-text">
+                Entre 1970 e 1980, a população saltou de <b class="who">93,1 milhões</b> para <b class="who">119 milhões</b>, impulsionada pela migração campo e cidade.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais e fontes históricas</summary>
+                <div class="saiba-body">
+                  A taxa média geométrica era de <strong>2,48% ao ano</strong>, quase cinco vezes o ritmo registrado no último Censo.
+                  <div class="saiba-sources">
+                    <a href="https://censo2022.ibge.gov.br/panorama/" target="_blank" rel="noopener">Panorama Censo IBGE (1872 a 2022) ↗</a>
+                    <a href="https://sidra.ibge.gov.br/tabela/1286" target="_blank" rel="noopener">SIDRA Série Histórica Censos ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="step" data-hist-year="2010" data-fact-banner="fact-banner-panorama" data-fact-badge="FATO ② · CENSO 2010" data-fact-headline="Fecundidade cai para 1,9 filho por mulher, abaixo da taxa de reposição (2,1)" data-fact-source="IBGE · Censo 2010">
+            <div class="step-card">
+              <div><span class="step-num">2</span><span class="kicker">1991 A 2010 · QUEDA DA FECUNDIDADE</span></div>
+              <h3>Menos filhos e interiorização para cidades médias</h3>
+              <p class="step-text">
+                Em 2010, o país chegou a <b class="who">190,7 milhões</b>, mas a taxa de natalidade já havia caído abaixo do nível de reposição populacional.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais sobre a transição e fontes</summary>
+                <div class="saiba-body">
+                  Enquanto as capitais desaceleravam, polos médios do interior (100 mil a 500 mil hab.) passaram a liderar a atração de moradores.
+                  <div class="saiba-sources">
+                    <a href="https://www.ibge.gov.br/estatisticas/sociais/populacao/9662-censo-demografico-2010.html" target="_blank" rel="noopener">IBGE Censo 2010 ↗</a>
+                    <a href="https://agenciadenoticias.ibge.gov.br/" target="_blank" rel="noopener">Agência IBGE Notícias ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="step" data-hist-year="2022" data-fact-banner="fact-banner-panorama" data-fact-badge="NOTÍCIA ③ · JUN 2023" data-fact-headline="Censo 2022 contabiliza 203.080.756 habitantes (+0,52% a.a.), menor ritmo desde 1872" data-fact-source="G1 / Folha / IBGE">
+            <div class="step-card">
+              <div><span class="step-num">3</span><span class="kicker">2022 · O CHOQUE DO CENSO</span></div>
+              <h3>A menor taxa de crescimento em 150 anos</h3>
+              <p class="step-text">
+                O Censo 2022 revelou <mark class="pen">203,08 milhões de moradores</mark> (+0,52% a.a.) e perda populacional em cinco grandes capitais
+                <span class="clip-pop" tabindex="0">
+                  <span class="clip-tag">Notícia Censo ↗</span>
+                  <span class="pop-card">
+                    <span class="pop-source">IBGE / G1</span><span class="pop-date">28 Jun 2023</span>
+                    <span class="pop-title">Salvador, Belo Horizonte, Belém, Porto Alegre e Natal encolheram entre 2010 e 2022 com o avanço dos municípios vizinhos.</span>
+                  </span>
+                </span>.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais: por que 5 capitais encolheram?</summary>
+                <div class="saiba-body">
+                  O custo imobiliário nas capitais deslocou famílias jovens para os anéis metropolitanos (como Aparecida de Goiânia, Caucaia, Serra e Fazenda Rio Grande).
+                  <div class="saiba-sources">
+                    <a href="https://sidra.ibge.gov.br/tabela/4714" target="_blank" rel="noopener">SIDRA Tabela 4714 (Censo 2022) ↗</a>
+                    <a href="https://agenciadenoticias.ibge.gov.br/agencia-noticias/2012-agencia-de-noticias/noticias/37237-de-2010-a-2022-populacao-brasileira-cresce-6-5-e-chega-a-203-1-milhoes" target="_blank" rel="noopener">Nota Oficial IBGE Censo 2022 ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="step" data-hist-year="2024" data-fact-banner="fact-banner-panorama" data-fact-badge="NOTÍCIA ④ · 29 AGO 2024" data-fact-headline="Estimativa 2024 recalibra total para 212.583.750 habitantes e define cotas do FPM" data-fact-source="DOU / Agência IBGE">
+            <div class="step-card">
+              <div><span class="step-num">4</span><span class="kicker">2024 · A ESTIMATIVA OFICIAL</span></div>
+              <h3>212,58 milhões e a disputa pelo Fundo de Participação</h3>
+              <p class="step-text">
+                Após ajustar subenumerações do Censo, o IBGE fixou a população em <b class="who">212.583.750 habitantes</b>
+                <span class="clip-pop" tabindex="0">
+                  <span class="clip-tag">DOU 2024 ↗</span>
+                  <span class="pop-card">
+                    <span class="pop-source">AGÊNCIA IBGE</span><span class="pop-date">29 Ago 2024</span>
+                    <span class="pop-title">Dados definem o rateio do FPM (Fundo de Participação dos Municípios) do TCU para as 5.570 prefeituras.</span>
+                  </span>
+                </span>.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais: os grandes números de 2024</summary>
+                <div class="saiba-body">
+                  <dl class="spec">
+                    <div><dt>Maior cidade</dt><dd>São Paulo (11.895.578 hab.)</dd></div>
+                    <div><dt>Menor cidade</dt><dd>Serra da Saudade (MG, 854 hab.)</dd></div>
+                    <div><dt>Cidades acima de 1 milhão</dt><dd>15 municípios (20,1% do Brasil)</dd></div>
+                    <div><dt>Cidades abaixo de 5 mil hab.</dt><dd>1.288 municípios (2,03% do Brasil)</dd></div>
+                  </dl>
+                  <div class="saiba-sources">
+                    <a href="https://sidra.ibge.gov.br/tabela/6579" target="_blank" rel="noopener">IBGE SIDRA Tabela 6579 (2024) ↗</a>
+                    <a href="https://www.in.gov.br/" target="_blank" rel="noopener">Publicação DOU (29/08/2024) ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+
+        <div class="sticky-stage">
+          <div class="chart-sheet">
+            <div class="chart-head">
+              <div>
+                <span class="kicker">SÉRIE HISTÓRICA OFICIAL · IBGE (1970 A 2024)</span>
+                <h3 class="heading">População Total do Brasil nos Censos e Estimativa 2024</h3>
+                <p class="chart-dek">Passe o mouse ou clique nos marcadores ① ② ③ ④ para ler o fato correspondente.</p>
+              </div>
+            </div>
+            <div id="fact-banner-panorama" class="chart-fact-banner">
+              <div>
+                <span class="fact-badge">NOTÍCIA ④ · 29 AGO 2024</span>
+                <strong>IBGE publica no DOU estimativa de 212.583.750 habitantes para cálculo do FPM</strong>
+              </div>
+              <span class="mono" style="color:var(--wnba-tan-dark)">DOU / Agência IBGE</span>
+            </div>
+            <div id="d3-hist-line" style="min-height:330px"></div>
+            <div class="viz-source">
+              <span>Fonte: IBGE (Censos Demográficos 1970 a 2022 e Estimativas da População 2024)</span>
+              <span>Pinos vermelhos = marcos históricos e notícias</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         3. ATO II: O MAPA DA POPULAÇÃO (ESTADOS + MAPA VETORIAL 5.571 MUNICÍPIOS)
+         ====================================================================== -->
+    <section id="sec-mapas" class="act">
+      <h2 class="act-title">Onde vivem e como votam os brasileiros</h2>
+      <p class="act-dek">
+        Conforme você rola, o mapa das 27 UFs alterna entre população absoluta, densidade, expansão desde 2010 e o partido vencedor nas prefeituras em 2024.
+      </p>
+
+      <div class="scrolly-theater reverse" style="margin-bottom:54px">
+        <div class="sticky-stage">
+          <div class="chart-sheet">
+            <div class="chart-head">
+              <div>
+                <span class="kicker">3.1 VISÃO ESTADUAL + CONTORNO AMÉRICA DO SUL</span>
+                <h3 class="heading">Mapa das 27 UFs e Ranking Comparativo</h3>
+              </div>
+              <div class="viz-toolbar">
+                <button type="button" class="chip-btn active" data-uf-metric="pop2024">População</button>
+                <button type="button" class="chip-btn" data-uf-metric="density">Densidade</button>
+                <button type="button" class="chip-btn" data-uf-metric="growth_10_24">Var. 10 a 24</button>
+                <button type="button" class="chip-btn" data-uf-metric="top_party">Partido TSE</button>
+              </div>
+            </div>
+            <div id="fact-banner-mapas" class="chart-fact-banner">
+              <div>
+                <span class="fact-badge">FATO ① · CONCENTRAÇÃO</span>
+                <strong>SP (45,9M), MG (21,3M) e RJ (17,2M) reúnem 40% de toda a população brasileira</strong>
+              </div>
+              <span class="mono" style="color:var(--wnba-tan-dark)">IBGE 2024</span>
+            </div>
+            <div class="grid-2" style="gap:12px">
+              <div id="d3-states-map" style="min-height:430px"></div>
+              <div id="d3-states-rank" style="min-height:430px"></div>
+            </div>
+            <div class="viz-source">
+              <span>Fonte: IBGE (Estimativas 2024 e Malha Territorial) e TSE 2024</span>
+              <span>Clique em uma UF para filtrar o mapa municipal abaixo</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="scrolly-steps-col">
+          <div class="step on" data-trigger-metric="pop2024" data-fact-banner="fact-banner-mapas" data-fact-badge="FATO ① · MAGNITUDE" data-fact-headline="SP (45,97M), MG (21,32M) e RJ (17,22M) somam 84,5 milhões de pessoas (40% do país)" data-fact-source="IBGE 2024">
+            <div class="step-card">
+              <div><span class="step-num">1</span><span class="kicker">POPULAÇÃO ABSOLUTA</span></div>
+              <h3>Três estados equivalem a 40% do Brasil</h3>
+              <p class="step-text">
+                Sozinho, o estado de <b class="who">São Paulo (45,97 milhões)</b> tem mais moradores que a Argentina inteira e 64 vezes a população de Roraima.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais: ranking do topo à base e fontes</summary>
+                <div class="saiba-body">
+                  Após SP, MG e RJ, vêm Bahia (14,85M), Paraná (11,82M) e Rio Grande do Sul (11,23M). Na outra ponta estão Roraima (716 mil), Amapá (802 mil) e Acre (880 mil).
+                  <div class="saiba-sources">
+                    <a href="https://www.ibge.gov.br/estatisticas/sociais/populacao/9103-estimativas-de-populacao.html" target="_blank" rel="noopener">IBGE Estimativas por UF 2024 ↗</a>
+                    <a href="https://servicodados.ibge.gov.br/api/docs/localidades" target="_blank" rel="noopener">API Localidades IBGE ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="step" data-trigger-metric="density" data-fact-banner="fact-banner-mapas" data-fact-badge="FATO ② · DENSIDADE" data-fact-headline="Distrito Federal (517,8 hab/km²) é 188 vezes mais denso que o Amazonas (2,75 hab/km²)" data-fact-source="IBGE Malha 2024">
+            <div class="step-card">
+              <div><span class="step-num">2</span><span class="kicker">DENSIDADE DEMOGRÁFICA</span></div>
+              <h3>517 hab/km² no DF contra 2,7 hab/km² no Amazonas</h3>
+              <p class="step-text">
+                A faixa litorânea concentra a ocupação, enquanto a Amazônia Legal abriga extensões continentais com menos de 4 moradores por km².
+              </p>
+            </div>
+          </div>
+
+          <div class="step" data-trigger-metric="growth_10_24" data-fact-banner="fact-banner-mapas" data-fact-badge="FATO ③ · MIGRAÇÃO 2010 A 2024" data-fact-headline="Roraima (+59,1%), Santa Catarina (+29,0%) e Mato Grosso (+26,4%) lideram crescimento" data-fact-source="IBGE 2010 a 2024">
+            <div class="step-card">
+              <div><span class="step-num">3</span><span class="kicker">CRESCIMENTO 2010 A 2024</span></div>
+              <h3>O eixo do agronegócio e o litoral catarinense</h3>
+              <p class="step-text">
+                Santa Catarina ganhou <mark class="pen">+1,81 milhão de moradores</mark> desde 2010 (+29%), enquanto Mato Grosso e Goiás atraíram fluxos ligados ao agro.
+              </p>
+            </div>
+          </div>
+
+          <div class="step" data-trigger-metric="top_party" data-fact-banner="fact-banner-mapas" data-fact-badge="NOTÍCIA ④ · URNAS 2024" data-fact-headline="PSD (887 prefeituras) supera MDB (856) pela 1ª vez em 20 anos no comando municipal" data-fact-source="TSE / Folha">
+            <div class="step-card">
+              <div><span class="step-num">4</span><span class="kicker">COMANDO POLÍTICO (TSE 2024)</span></div>
+              <h3>O mapa partidário que saiu das urnas</h3>
+              <p class="step-text">
+                Nas eleições municipais de 2024, <b class="who">PSD</b> e <b class="who">MDB</b> dominaram a capilaridade estadual, enquanto <b class="who">PL</b> e <b class="who">União</b> venceram em grandes polos
+                <span class="clip-pop" tabindex="0">
+                  <span class="clip-tag">TSE 2024 ↗</span>
+                  <span class="pop-card">
+                    <span class="pop-source">TSE / UOL</span><span class="pop-date">27 Out 2024</span>
+                    <span class="pop-title">PSD governa 36,8 milhões de brasileiros em 887 cidades; MDB governa 34,1 milhões em 856 municípios.</span>
+                  </span>
+                </span>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.2 Mapa Vetorial Municipal (Leaflet 100% Vetorial com todos os 5.571 municípios) -->
+      <div id="sec-mun-mapa" class="wrap">
+        <div class="chart-sheet">
+          <div class="chart-head">
+            <div>
+              <span class="kicker">3.2 MAPA VETORIAL GRANULAR · AMÉRICA DO SUL, 27 UFs E 5.571 MUNICÍPIOS</span>
+              <h3 class="heading">Explore Todos os Municípios por População, Densidade, Crescimento e Partido Eleito</h3>
+              <p class="chart-dek">Base cartográfica 100% vetorial integrada (sem dependência de chave externa). Clique em qualquer estado ou município.</p>
+            </div>
+            <div class="viz-toolbar">
+              <button type="button" class="chip-btn active" data-mun-map-mode="pop2024">Cor: Região / Pop.</button>
+              <button type="button" class="chip-btn" data-mun-map-mode="density">Cor: Densidade</button>
+              <button type="button" class="chip-btn" data-mun-map-mode="growth_22_24">Cor: Var. 22 a 24</button>
+              <button type="button" class="chip-btn" data-mun-map-mode="party_2024">Cor: Partido TSE 2024</button>
+            </div>
+          </div>
+
+          <div class="viz-toolbar" style="margin-bottom:12px">
+            <select id="filter-mun-uf" class="nav-select" aria-label="Filtrar por Estado">
+              <option value="ALL">Todos os 27 Estados (UFs)</option>
+            </select>
+            <select id="filter-mun-region" class="nav-select" aria-label="Filtrar por Região">
+              <option value="ALL">Todas as 5 Regiões</option>
+              <option value="Sudeste">Sudeste</option>
+              <option value="Nordeste">Nordeste</option>
+              <option value="Sul">Sul</option>
+              <option value="Norte">Norte</option>
+              <option value="Centro-Oeste">Centro-Oeste</option>
+            </select>
+            <select id="filter-mun-bracket" class="nav-select" aria-label="Filtrar por Faixa Populacional">
+              <option value="ALL">Todas as Faixas Populacionais</option>
+              <option value="> 500 mil">&gt; 500 mil hab.</option>
+              <option value="100–500 mil">100 a 500 mil hab.</option>
+              <option value="50–100 mil">50 a 100 mil hab.</option>
+              <option value="20–50 mil">20 a 50 mil hab.</option>
+              <option value="10–20 mil">10 a 20 mil hab.</option>
+              <option value="5–10 mil">5 a 10 mil hab.</option>
+              <option value="< 5 mil">&lt; 5 mil hab.</option>
+            </select>
+            <span id="mun-map-count" class="mono" style="color:var(--wnba-tan-dark);margin-left:auto">5.571 municípios carregados (base completa IBGE)</span>
+          </div>
+
+          <div id="leaflet-mun-map" role="region" aria-label="Mapa vetorial interativo de municípios do Brasil"></div>
+          <div class="viz-source">
+            <span>Fonte: IBGE (Malha Municipal Digital e Estimativas 2024) e TSE (Eleições Municipais 2024)</span>
+            <span>Clique em uma cidade para ver o popup e carregar sua ficha completa no Explorador</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         4. ATO III: GIGANTES, MINÚSCULOS, CAPITAIS E NÃO-CAPITAIS
+         ====================================================================== -->
+    <section id="sec-rankings" class="act">
+      <h2 class="act-title">De São Paulo (11,89 milhões) a Serra da Saudade (854 moradores)</h2>
+      <p class="act-dek">
+        Role pelos 4 recortes abaixo para alternar o ranking entre as 50 maiores cidades, os 30 menores municípios, as 27 capitais e as não-capitais.
+      </p>
+
+      <div class="scrolly-theater">
+        <div class="scrolly-steps-col">
+          <div class="step on" data-trigger-rank="top50" data-fact-banner="fact-banner-rankings" data-fact-badge="RANKING ① · AS 15 METRÓPOLES" data-fact-headline="15 cidades brasileiras superam 1 milhão de habitantes e somam 42,7 milhões de pessoas" data-fact-source="IBGE 2024">
+            <div class="step-card">
+              <div><span class="step-num">1</span><span class="kicker">4.1 OS MAIS POPULOSOS</span></div>
+              <h3>O clube do milhão: 15 cidades concentram 20,1% do país</h3>
+              <p class="step-text">
+                Lideradas por <b class="who">São Paulo (11,89M)</b>, <b class="who">Rio (6,73M)</b> e <b class="who">Brasília (2,98M)</b>, 15 cidades concentram um quinto dos brasileiros.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais: consultar Top 10 por Estado (UF)</summary>
+                <div class="saiba-body">
+                  <div style="margin-bottom:8px">
+                    <label for="select-top10-uf" class="mono">Escolha o Estado:</label>
+                    <select id="select-top10-uf" class="nav-select" style="width:100%;margin-top:4px"></select>
+                  </div>
+                  <div id="d3-top10-uf" style="min-height:230px"></div>
+                  <div class="saiba-sources">
+                    <a href="https://sidra.ibge.gov.br/tabela/6579" target="_blank" rel="noopener">IBGE SIDRA Tabela 6579 ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="step" data-trigger-rank="smallest30" data-fact-banner="fact-banner-rankings" data-fact-badge="RANKING ② · OS 30 MENORES" data-fact-headline="Três municípios têm menos de 1.000 moradores: Serra da Saudade (854), Anhanguera (921) e Borá (928)" data-fact-source="IBGE 2024">
+            <div class="step-card">
+              <div><span class="step-num">2</span><span class="kicker">4.2 OS MENOS POPULOSOS</span></div>
+              <h3>Onde a cidade inteira cabe em um único condomínio</h3>
+              <p class="step-text">
+                <mark class="pen">Serra da Saudade (MG)</mark> tem 854 habitantes, seguida por <b class="who">Anhanguera (GO, 921)</b> e <b class="who">Borá (SP, 928)</b>.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais: por que existem cidades tão pequenas?</summary>
+                <div class="saiba-body">
+                  Emancipadas sobretudo entre as décadas de 1960 e 1990, 26 cidades têm menos de 1.500 moradores, mas possuem prefeitura e câmara com 9 vereadores.
+                  <div class="saiba-sources">
+                    <a href="https://sidra.ibge.gov.br/tabela/6579" target="_blank" rel="noopener">IBGE Tabela 6579 (Todos os municípios) ↗</a>
+                    <a href="https://www.tse.jus.br/eleicoes/estatisticas/estatisticas" target="_blank" rel="noopener">TSE Estatísticas Municipais ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="step" data-trigger-rank="capitals27" data-fact-banner="fact-banner-rankings" data-fact-badge="RANKING ③ · AS 27 CAPITAIS" data-fact-headline="Fortaleza (2,57M) supera Salvador (2,56M) como 4ª maior capital do Brasil" data-fact-source="IBGE / G1">
+            <div class="step-card">
+              <div><span class="step-num">3</span><span class="kicker">4.3a AS 27 CAPITAIS</span></div>
+              <h3>Fortaleza assume o 4º lugar entre as capitais</h3>
+              <p class="step-text">
+                Com o recuo demográfico de Salvador e BH no Censo, <b class="who">Fortaleza (2,57M)</b> consolidou-se como a maior capital do Nordeste
+                <span class="clip-pop" tabindex="0">
+                  <span class="clip-tag">Notícia Capitais ↗</span>
+                  <span class="pop-card">
+                    <span class="pop-source">G1 / IBGE</span><span class="pop-date">Ago 2024</span>
+                    <span class="pop-title">Manaus (2,28M) já é a 7ª maior capital do país, superando Curitiba (1,83M) e Recife (1,58M).</span>
+                  </span>
+                </span>.
+              </p>
+            </div>
+          </div>
+
+          <div class="step" data-trigger-rank="noncapitals30" data-fact-banner="fact-banner-rankings" data-fact-badge="RANKING ④ · NÃO-CAPITAIS" data-fact-headline="Guarulhos (1,34M) e Campinas (1,18M) são as únicas não-capitais acima de 1 milhão" data-fact-source="IBGE 2024">
+            <div class="step-card">
+              <div><span class="step-num">4</span><span class="kicker">4.3b GIGANTES DO INTERIOR E METRÓPOLE</span></div>
+              <h3>Guarulhos e Campinas superam 14 capitais estaduais</h3>
+              <p class="step-text">
+                Logo atrás vêm <b class="who">São Gonçalo (929 mil)</b>, <b class="who">Duque de Caxias (866 mil)</b>, <b class="who">Nova Iguaçu (843 mil)</b> e <b class="who">São Bernardo (840 mil)</b>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="sticky-stage">
+          <div class="chart-sheet">
+            <div class="chart-head">
+              <div>
+                <span class="kicker">RANKINGS OFICIAIS · IBGE 2024 E PARTIDO VENCEDOR TSE 2024</span>
+                <h3 class="heading">População Municipal e Comando Político (★ = Capital)</h3>
+              </div>
+              <div class="viz-toolbar">
+                <button type="button" class="chip-btn active" data-rank-tab="top50">Top 50 Maiores</button>
+                <button type="button" class="chip-btn" data-rank-tab="smallest30">30 Menores</button>
+                <button type="button" class="chip-btn" data-rank-tab="capitals27">27 Capitais</button>
+                <button type="button" class="chip-btn" data-rank-tab="noncapitals30">Não-Capitais</button>
+              </div>
+            </div>
+            <div id="fact-banner-rankings" class="chart-fact-banner">
+              <div>
+                <span class="fact-badge">RANKING ① · AS 15 METRÓPOLES</span>
+                <strong>15 cidades brasileiras superam 1 milhão de habitantes e somam 42,7 milhões de pessoas</strong>
+              </div>
+              <span class="mono" style="color:var(--wnba-tan-dark)">IBGE 2024</span>
+            </div>
+            <div id="d3-main-ranking" style="max-height:470px;overflow-y:auto;padding-right:6px"></div>
+            <div class="viz-source">
+              <span>Fonte: IBGE (Estimativas da População 2024) e TSE 2024 (Partido Eleito entre parênteses)</span>
+              <span>Passe o mouse nas barras para detalhes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         5. ATO IV: OS CINCO BRASIS (TREEMAP REGIONAL SUBDIVIDIDO POR UF)
+         ====================================================================== -->
+    <section id="sec-regioes" class="act">
+      <h2 class="act-title">Os Cinco Brasis dentro de um só território</h2>
+      <p class="act-dek">
+        Sudeste (41,8%) e Nordeste (26,9%) concentram mais de dois terços da população nacional, enquanto o Norte ocupa 45,3% da área do país.
+      </p>
+
+      <div class="wrap">
+        <div class="chart-sheet">
+          <div class="chart-head">
+            <div>
+              <span class="kicker">5.1 OS CINCO BRASIS · TREEMAP REGIONAL SUBDIVIDIDO POR UF</span>
+              <h3 class="heading">População Estimada 2024 por Grande Região e Estado</h3>
+            </div>
+          </div>
+          <div id="d3-regions-treemap" style="min-height:330px"></div>
+          <details class="saiba-mais">
+            <summary>＋ Saiba mais: peso territorial vs. populacional das 5 regiões</summary>
+            <div class="saiba-body">
+              O <strong>Sudeste</strong> abriga 88,6 milhões de habitantes em apenas 10,9% da área do país (95,8 hab/km²). Já a <strong>Região Norte</strong> reúne 18,7 milhões em 3,85 milhões de km² (4,8 hab/km²).
+              <div class="saiba-sources">
+                <a href="https://sidra.ibge.gov.br/tabela/4714" target="_blank" rel="noopener">IBGE Áreas e Densidade (Tabela 4714) ↗</a>
+                <a href="https://www.ibge.gov.br/geociencias/organizacao-do-territorio/estrutura-territorial/15761-areas-dos-municipios.html" target="_blank" rel="noopener">Malha Territorial IBGE ↗</a>
+              </div>
+            </div>
+          </details>
+          <div class="viz-source">
+            <span>Fonte: IBGE (Estimativas da População 2024 por Grande Região e UF)</span>
+            <span>Passe o cursor nos blocos para densidade e população</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         6. ATO V: EXPLORADOR DOS 5.571 MUNICÍPIOS E COMPARADOR LIVRE
+         ====================================================================== -->
+    <section id="sec-explorador" class="act">
+      <h2 class="act-title">Explore e compare qualquer um dos 5.571 municípios</h2>
+      <p class="act-dek">
+        Busque qualquer cidade brasileira para cruzar demografia (IBGE 2024 e Censo 2022), prefeitura (TSE 2024), governo estadual, Congresso e votação presidencial.
+      </p>
+
+      <div class="wrap">
+        <div class="search-bar-wrap">
+          <input type="search" id="explorer-search-input" class="input-field" placeholder="Digite qualquer município, UF ou código IBGE (ex: São Paulo, Ouro Preto, Serra da Saudade, Fortaleza, Manaus)..." aria-label="Buscar município">
+          <div id="explorer-autocomplete" class="autocomplete-list" role="listbox"></div>
+        </div>
+
+        <div class="viz-toolbar" style="margin-bottom:16px">
+          <span class="mono" style="color:var(--wnba-tan-dark)">EXEMPLOS RÁPIDOS:</span>
+          <button type="button" class="chip-btn" data-quick-mun="São Paulo|SP">São Paulo (11,89M)</button>
+          <button type="button" class="chip-btn" data-quick-mun="Serra da Saudade|MG">Serra da Saudade (854 hab.)</button>
+          <button type="button" class="chip-btn" data-quick-mun="Fortaleza|CE">Fortaleza (2,57M · PT)</button>
+          <button type="button" class="chip-btn" data-quick-mun="Guaramiranga|CE">Guaramiranga (CE)</button>
+          <button type="button" class="chip-btn" data-quick-mun="Canaã dos Carajás|PA">Canaã dos Carajás (PA)</button>
+          <button type="button" class="chip-btn" data-quick-mun="Não-Me-Toque|RS">Não-Me-Toque (RS)</button>
+        </div>
+
+        <div id="explorer-ficha-box" class="chart-sheet" style="margin-bottom:24px"></div>
+
+        <!-- Comparador Direto entre Quaisquer 2 dos 5.571 Municípios Brasileiros -->
+        <div id="sec-comparador" class="chart-sheet" style="margin-bottom:24px">
+          <div class="chart-head">
+            <div>
+              <span class="kicker">COMPARADOR LIVRE · TODOS OS 5.571 MUNICÍPIOS (IBGE + TSE)</span>
+              <h3 class="heading">Compare quaisquer duas cidades do Brasil lado a lado</h3>
+              <p class="chart-dek">Digite o nome de qualquer município nos dois campos abaixo ou clique nos duelos prontos.</p>
+            </div>
+            <div class="viz-toolbar">
+              <button type="button" class="chip-btn" data-quick-comp="São Paulo|SP||Serra da Saudade|MG">SP × Serra da Saudade</button>
+              <button type="button" class="chip-btn" data-quick-comp="Fortaleza|CE||Salvador|BA">Fortaleza × Salvador</button>
+              <button type="button" class="chip-btn" data-quick-comp="Curitiba|PR||Porto Alegre|RS">Curitiba × Porto Alegre</button>
+              <button type="button" class="chip-btn" data-quick-comp="Manaus|AM||Belém|PA">Manaus × Belém</button>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-bottom:16px">
+            <div style="position:relative">
+              <label for="comp-input-a" class="mono" style="display:block;margin-bottom:5px;color:var(--wnba-red)">MUNICÍPIO A (DIGITE PARA BUSCAR)</label>
+              <input type="search" id="comp-input-a" class="input-field" style="width:100%" value="São Paulo (SP)" placeholder="Buscar Cidade A..." aria-label="Buscar Município A">
+              <div id="comp-auto-a" class="autocomplete-list" role="listbox"></div>
+            </div>
+            <div style="position:relative">
+              <label for="comp-input-b" class="mono" style="display:block;margin-bottom:5px;color:var(--wnba-navy)">MUNICÍPIO B (DIGITE PARA BUSCAR)</label>
+              <input type="search" id="comp-input-b" class="input-field" style="width:100%" value="Serra da Saudade (MG)" placeholder="Buscar Cidade B..." aria-label="Buscar Município B">
+              <div id="comp-auto-b" class="autocomplete-list" role="listbox"></div>
+            </div>
+          </div>
+
+          <div id="comparator-output"></div>
+        </div>
+
+        <details class="saiba-mais">
+          <summary>＋ Saiba mais: Waffle Chart das 15 Metrópoles e Extremos de Crescimento</summary>
+          <div class="saiba-body" style="background:var(--color-paper)">
+            <div id="sec-crescimento">
+              <div class="mono" style="color:var(--wnba-red);margin-bottom:8px">15 METRÓPOLES = 20,1% DO BRASIL (1 BLOCO = 1%) E VARIAÇÃO 2022 A 2024</div>
+              <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+                <div id="d3-waffle-metropoles" style="width:210px"></div>
+                <div id="d3-growth-diverging" style="flex:1;min-width:260px"></div>
+              </div>
+              <div class="saiba-sources">
+                <a href="https://sidra.ibge.gov.br/tabela/6579" target="_blank" rel="noopener">IBGE Estimativas 2024 (Tabela 6579) ↗</a>
+                <a href="https://sidra.ibge.gov.br/tabela/4714" target="_blank" rel="noopener">IBGE Censo 2022 (Tabela 4714) ↗</a>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         7. ATO VI: ELEIÇÕES TSE 2024, AJUSTE FISCAL E RUMO A 2026
+         ====================================================================== -->
+    <section id="sec-eleicoes" class="act">
+      <h2 class="act-title">Das urnas de 2024 ao pacote fiscal e 2026</h2>
+      <p class="act-dek">
+        Role pelos 4 momentos abaixo para ver como a vitória do Centrão nas prefeituras pautou o corte de gastos, o dólar, o Congresso e o STF.
+      </p>
+
+      <div class="scrolly-theater">
+        <div class="scrolly-steps-col">
+          <div class="step on" data-fact-banner="fact-banner-eleicoes" data-fact-badge="MARCO ① · OUT 2024 (TSE)" data-fact-headline="PSD (887 prefeituras) supera MDB (856) pela 1ª vez em 20 anos; abstenção fica em 21,71%" data-fact-source="TSE / Folha">
+            <div class="step-card">
+              <div><span class="step-num">1</span><span class="kicker">OUTUBRO 2024 · O VEREDITO DAS URNAS</span></div>
+              <h3>O avanço do Centrão e a taxa de reeleição de 81%</h3>
+              <p class="step-text">
+                O <b class="who">PSD (887)</b> superou o <b class="who">MDB (856)</b> e o <b class="who">PP (747)</b> no total de prefeituras, enquanto o <b class="who">PL (516)</b> liderou em volume de votos nas grandes cidades
+                <span class="clip-pop" tabindex="0">
+                  <span class="clip-tag">TSE Consolidado ↗</span>
+                  <span class="pop-card">
+                    <span class="pop-source">TSE / G1</span><span class="pop-date">27 Out 2024</span>
+                    <span class="pop-title">81% dos prefeitos que tentaram reeleição venceram, impulsionados por R$ 4,96 bi do Fundo Eleitoral e emendas parlamentares.</span>
+                  </span>
+                </span>.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais: recortes de Gênero, Raça e FEFC</summary>
+                <div class="saiba-body">
+                  Embora mulheres sejam <strong>52,4% do eleitorado</strong>, conquistaram <strong>13,1% das prefeituras</strong> e <strong>18,2% das cadeiras de vereador</strong>. Candidatos pretos e pardos foram 52,7% das candidaturas e 32,4% dos prefeitos eleitos.
+                  <div class="saiba-sources">
+                    <a href="https://sig.tse.jus.br/ords/dwapr/r/seai/sig-eleicao/home" target="_blank" rel="noopener">TSE Painel de Estatísticas Eleitorais ↗</a>
+                    <a href="https://dadosabertos.tse.jus.br/" target="_blank" rel="noopener">Portal de Dados Abertos TSE ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="step" data-fact-banner="fact-banner-eleicoes" data-fact-badge="MARCO ② · 27 NOV 2024" data-fact-headline="Fazenda anuncia pacote fiscal de R$ 70 bi junto com isenção de IR até R$ 5 mil; dólar vai a R$ 5,91" data-fact-source="Valor / Fazenda">
+            <div class="step-card">
+              <div><span class="step-num">2</span><span class="kicker">NOVEMBRO 2024 · O PACOTE FISCAL</span></div>
+              <h3>Corte de gastos colide com anúncio de isenção do IR</h3>
+              <p class="step-text">
+                Passadas as eleições, o governo propôs limitar o ganho real do salário mínimo à banda do arcabouço (<mark class="pen">0,6% a 2,5%</mark>), mas o anúncio simultâneo sobre o IR levou o dólar a <b class="who">R$ 5,91</b>
+                <span class="clip-pop" tabindex="0">
+                  <span class="clip-tag">Notícia Fiscal ↗</span>
+                  <span class="pop-card">
+                    <span class="pop-source">VALOR ECONÔMICO</span><span class="pop-date">28 Nov 2024</span>
+                    <span class="pop-title">Mercado questiona impacto líquido da economia de R$ 70 bi em dois anos frente à renúncia estimada da reforma da renda.</span>
+                  </span>
+                </span>.
+              </p>
+            </div>
+          </div>
+
+          <div class="step" data-fact-banner="fact-banner-eleicoes" data-fact-badge="MARCO ③ · DEZ 2024 (CONGRESSO)" data-fact-headline="Dólar testa R$ 6,26 durante votação; bancadas ligadas aos novos prefeitos cobram emendas" data-fact-source="Câmara / Senado">
+            <div class="step-card">
+              <div><span class="step-num">3</span><span class="kicker">DEZEMBRO 2024 · O CABO DE GUERRA NO CONGRESSO</span></div>
+              <h3>O novo mapa municipal cobra seu preço na Câmara e no Senado</h3>
+              <p class="step-text">
+                Com <b class="who">3.068 prefeituras</b> nas mãos de PSD, MDB, PP e União, deputados condicionaram a aprovação do pacote fiscal ao destravamento de emendas para suas bases municipais.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais: o que foi aprovado no Congresso?</summary>
+                <div class="saiba-body">
+                  O Congresso manteve a trava do salário mínimo no arcabouço fiscal, suavizou regras do BPC, limitou o uso cruzado de créditos tributários e fixou prazo para regulamentar supersalários.
+                  <div class="saiba-sources">
+                    <a href="https://www.camara.leg.br/noticias/" target="_blank" rel="noopener">Agência Câmara de Notícias ↗</a>
+                    <a href="https://www12.senado.leg.br/noticias" target="_blank" rel="noopener">Agência Senado ↗</a>
+                    <a href="https://portal.stf.jus.br/" target="_blank" rel="noopener">Portal STF (Decisões Emendas Pix) ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="step" data-fact-banner="fact-banner-eleicoes" data-fact-badge="MARCO ④ · 2025 A 2026 (3 PODERES)" data-fact-headline="STF exige rastreabilidade de emendas Pix e prefeitos eleitos tornam-se cabos eleitorais de 2026" data-fact-source="STF / Jota">
+            <div class="step-card">
+              <div><span class="step-num">4</span><span class="kicker">2025 A 2026 · EXECUTIVO, CONGRESSO E STF</span></div>
+              <h3>O que esperar dos Três Poderes até a eleição de 2026</h3>
+              <p class="step-text">
+                O <strong>STF</strong> impôs rastreabilidade às emendas Pix municipais e pauta o teto de supersalários, enquanto o <strong>Executivo</strong> e o <strong>Congresso</strong> disputam o apoio dos novos prefeitos para 2026
+                <span class="clip-pop" tabindex="0">
+                  <span class="clip-tag">STF e Congresso ↗</span>
+                  <span class="pop-card">
+                    <span class="pop-source">JOTA / STF</span><span class="pop-date">Dez 2024 a 2025</span>
+                    <span class="pop-title">Decisões sobre transparência orçamentária e cotas eleitorais (EC 133/2024) redesenham a relação entre Brasília e os 5.570 municípios.</span>
+                  </span>
+                </span>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="sticky-stage">
+          <div class="chart-sheet">
+            <div id="fact-banner-eleicoes" class="chart-fact-banner">
+              <div>
+                <span class="fact-badge">MARCO ① · OUT 2024 (TSE)</span>
+                <strong>PSD (887 prefeituras) supera MDB (856) pela 1ª vez em 20 anos; abstenção fica em 21,71%</strong>
+              </div>
+              <span class="mono" style="color:var(--wnba-tan-dark)">TSE / Folha</span>
+            </div>
+
+            <div class="grid-2" style="gap:14px">
+              <div>
+                <span class="kicker">10.1 PREFEITURAS POR PARTIDO (2024 VS. 2020)</span>
+                <div id="d3-tse-parties" style="min-height:320px"></div>
+              </div>
+              <div>
+                <span class="kicker">10.2 CÂMBIO (R$/US$) E MARCOS DO PACOTE FISCAL (① A ④)</span>
+                <div id="d3-fiscal-market" style="min-height:340px"></div>
+              </div>
+            </div>
+            <div class="viz-source">
+              <span>Fontes: TSE (Dados Abertos 2024), Banco Central (PTAX), Ministério da Fazenda, Câmara e Senado</span>
+              <span>Datas em 90° e linhas verticais indicam cada marco fiscal</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         8. ATO VII: A ESCADA DO PODER (PREFEITOS, GOVERNADORES, SENADORES E PRESIDENTE)
+         ====================================================================== -->
+    <section id="sec-poderes" class="act">
+      <h2 class="act-title">A escada do poder: dos prefeitos de 2024 aos governadores, senadores e presidente em 2026</h2>
+      <p class="act-dek">
+        Veja quem governa cada estado atualmente, quem foi eleito governador e senador nas 27 UFs em outubro de 2026 e como o mapa de prefeitos de 2024 sustentou a disputa presidencial.
+      </p>
+
+      <div class="scrolly-theater reverse">
+        <div class="sticky-stage">
+          <div class="chart-sheet">
+            <div class="chart-head">
+              <div>
+                <span class="kicker">MAPA DO PODER (TSE 2024 E 2026) · 27 ESTADOS E 5.571 MUNICÍPIOS</span>
+                <h3 class="heading">Presidente, Governadores Eleitos (27), Senadores Eleitos (54) e Prefeitos</h3>
+              </div>
+              <div class="viz-toolbar">
+                <button type="button" class="chip-btn active" data-power-tab="governadores_27">Governadores 2026 (27)</button>
+                <button type="button" class="chip-btn" data-power-tab="senado_2026">Senadores 2026 (54)</button>
+                <button type="button" class="chip-btn" data-power-tab="presidente_br">Presidente 2026</button>
+                <button type="button" class="chip-btn" data-power-tab="prefeitos_2024">Prefeitos 2024</button>
+              </div>
+            </div>
+            <div id="fact-banner-poderes" class="chart-fact-banner">
+              <div>
+                <span class="fact-badge">GOVERNADORES ELEITOS EM 2026 (27 UFs)</span>
+                <strong>PL (6 estados), PSD (5), PP (4), PT (4) e Republicanos (4) comandam os executivos estaduais eleitos em 2026</strong>
+              </div>
+              <span class="mono" style="color:var(--wnba-tan-dark)">TSE 2026</span>
+            </div>
+            <div id="d3-power-ladder" style="min-height:320px"></div>
+            <div class="viz-source">
+              <span>Fonte: TSE (Apuração Oficial das Eleições Gerais de Outubro de 2026 e Municipais de 2024)</span>
+              <span>No Explorador e no Comparador acima, consulte o governador atual, o eleito e os 3 senadores de cada UF</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="scrolly-steps-col">
+          <div class="step on" data-trigger-power="governadores_27" data-fact-banner="fact-banner-poderes" data-fact-badge="GOVERNADORES ELEITOS EM 2026 (27 UFs)" data-fact-headline="PL (6 estados), PSD (5), PP (4), PT (4) e Republicanos (4) lideram os 27 governos estaduais eleitos em outubro de 2026" data-fact-source="TSE 2026">
+            <div class="step-card">
+              <div><span class="step-num">1</span><span class="kicker">GOVERNADORES (ATUAIS E ELEITOS EM 2026)</span></div>
+              <h3>Quem governa hoje os estados e quem venceu para 2027 a 2030</h3>
+              <p class="step-text">
+                Em 2026, vários titulares deixaram o cargo em abril para disputar o Senado (assumindo vices como Celina Leão no DF, Daniel Vilela em GO, Otaviano Pivetta em MT, Hana Ghassan no PA, Lucas Ribeiro na PB e Mailza Assis no AC). Nas urnas de outubro, <b class="who">PL (6)</b>, <b class="who">PSD (5)</b>, <b class="who">PP (4)</b>, <b class="who">PT (4)</b> e <b class="who">Republicanos (4)</b> dividiram os 27 estados.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais: lista de governadores eleitos nos maiores colégios em 2026</summary>
+                <div class="saiba-body">
+                  <strong>Sudeste:</strong> Tarcísio de Freitas (Republicanos, reeleito em SP), Cleitinho Azevedo (Republicanos, MG), Douglas Ruas (PL, RJ) e Lorenzo Pazolini (Republicanos, ES).<br>
+                  <strong>Sul:</strong> Sergio Moro (PL, PR), Zucco (PL, RS) e Jorginho Mello (PL, reeleito em SC).<br>
+                  <strong>Nordeste:</strong> Jerônimo Rodrigues (PT, BA), Elmano de Freitas (PT, CE), Raquel Lyra (PSD, PE), Eduardo Braide (PSD, MA), Lucas Ribeiro (PP, PB), Rafael Fonteles (PT, PI), Cadu Xavier (PT, RN), JHC (PSDB, AL) e Fábio Mitidieri (PSD, SE).
+                  <div class="saiba-sources">
+                    <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">TSE Resultados Oficiais 2026 ↗</a>
+                    <a href="https://dadosabertos.tse.jus.br/" target="_blank" rel="noopener">Portal de Dados Abertos TSE ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="step" data-trigger-power="senado_2026" data-fact-banner="fact-banner-poderes" data-fact-badge="SENADORES ELEITOS EM 2026 (54 VAGAS)" data-fact-headline="Na renovação de 2/3 do Senado em 2026, PL elegeu 19 senadores, MDB elegeu 7 e PT elegeu 6" data-fact-source="TSE / Senado">
+            <div class="step-card">
+              <div><span class="step-num">2</span><span class="kicker">SENADORES ELEITOS EM 2026 (2 POR ESTADO)</span></div>
+              <h3>As 54 cadeiras renovadas em 2026 ao lado dos 27 senadores de 2022</h3>
+              <p class="step-text">
+                Cada estado elegeu dois novos senadores em 2026. O <b class="who">PL (19 eleitos)</b> conquistou as duas vagas em estados como RJ, DF, SC, MS e RO, enquanto <b class="who">MDB (7)</b>, <b class="who">PT (6)</b>, <b class="who">PSD (3)</b>, <b class="who">PP (3)</b>, <b class="who">PSB (3)</b>, <b class="who">União (3)</b> e <b class="who">Novo (3)</b> completaram a renovação.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais: senadores eleitos em 2026 por região</summary>
+                <div class="saiba-body">
+                  <strong>SP:</strong> André do Prado (PL) e Guilherme Derrite (PP). <strong>MG:</strong> Domingos Sávio (PL) e Marília Campos (PT). <strong>RJ:</strong> Carlos Portinho (PL) e Carlos Jordy (PL). <strong>BA:</strong> Rui Costa (PT) e Jaques Wagner (PT). <strong>PR:</strong> Filipe Barros (PL) e Deltan Dallagnol (Novo). <strong>RS:</strong> Sanderson (PL) e Marcel Van Hattem (Novo). <strong>PE:</strong> Humberto Costa (PT) e Marília Arraes (PDT). <strong>CE:</strong> Cid Gomes (PSB) e Luizianne Lins (Rede). <strong>DF:</strong> Michelle Bolsonaro (PL) e Bia Kicis (PL). *(No Explorador acima, veja os 3 senadores de qualquer estado).*
+                  <div class="saiba-sources">
+                    <a href="https://www25.senado.leg.br/web/senadores/em-exercicio" target="_blank" rel="noopener">Senado Federal (Bancadas por UF) ↗</a>
+                    <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">TSE Totalização Senado 2026 ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="step" data-trigger-power="presidente_br" data-fact-banner="fact-banner-poderes" data-fact-badge="PRESIDÊNCIA DA REPÚBLICA (2º TURNO 2026)" data-fact-headline="Lula (PT) vence o 2º turno de 2026 com 51,79% (64,25 milhões de votos) contra 48,21% (59,82 milhões) de Flávio Bolsonaro (PL)" data-fact-source="TSE · 25 Out 2026">
+            <div class="step-card">
+              <div><span class="step-num">3</span><span class="kicker">PRESIDÊNCIA DA REPÚBLICA (2026 VS. 2022)</span></div>
+              <h3>51,79% contra 48,21%: a virada no 2º turno de 2026</h3>
+              <p class="step-text">
+                Em 25 de outubro de 2026, <b class="who">Lula (PT, 64,25M · 51,79%)</b> superou <b class="who">Flávio Bolsonaro (PL, 59,82M · 48,21%)</b> após inverter a liderança do 1º turno, repetindo a geografia de 2022 com vitória no Nordeste, em MG, no PA, AM e TO.
+              </p>
+              <details class="saiba-mais">
+                <summary>＋ Saiba mais: comparativo presidencial 2026 vs. 2022</summary>
+                <div class="saiba-body">
+                  Em 2022, Lula havia vencido Jair Bolsonaro por 50,90% (60,34M) a 49,10% (58,20M). Em 2026, a margem ampliou-se para 4,43 milhões de votos, mas a oposição ampliou sua bancada no Senado e nos governos do Sul, Centro-Oeste e Norte.
+                  <div class="saiba-sources">
+                    <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">TSE Apuração Presidencial 2026 ↗</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="step" data-trigger-power="prefeitos_2024" data-fact-banner="fact-banner-poderes" data-fact-badge="BASE MUNICIPAL (5.570 PREFEITURAS)" data-fact-headline="PSD (887), MDB (856), PP (747), União (578) e PL (516) formam a base territorial que articulou as campanhas de 2026" data-fact-source="TSE 2024 a 2026">
+            <div class="step-card">
+              <div><span class="step-num">4</span><span class="kicker">PREFEITOS (A BASE NOS 5.571 MUNICÍPIOS)</span></div>
+              <h3>Como os prefeitos eleitos em 2024 pavimentaram as vitórias estaduais de 2026</h3>
+              <p class="step-text">
+                Três prefeitos de capitais reeleitos em 2024 venceram governos estaduais já no 1º turno de 2026: <b class="who">Eduardo Braide (PSD, MA)</b>, <b class="who">JHC (PSDB, AL)</b> e <b class="who">Dr. Furlan (PSD, AP)</b>, além de <b class="who">Arthur Henrique (PL, RR)</b> e <b class="who">Lorenzo Pazolini (Republicanos, ES)</b>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         9. ENCERRAMENTO, METODOLOGIA E COLETORES OFICIAIS
+         ====================================================================== -->
+    <section id="sec-encerramento" class="act">
+      <div class="prose-col" style="text-align:center">
+        <span class="kicker">TRANSPARÊNCIA, METODOLOGIA E CÓDIGO ABERTO</span>
+        <h2 class="act-title" style="margin-top:0.8rem">Um país de 5.571 realidades verificáveis</h2>
+        <p>
+          Todos os dados demográficos (IBGE 2024 e Censo 2022) e eleitorais (TSE 2024 a 2026) deste atlas foram coletados
+          e estruturados em Python diretamente das APIs públicas oficiais.
+        </p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px">
+          <a href="#sec-comparador" class="chip-btn active" style="text-decoration:none;padding:10px 16px">↑ Comparar Municípios</a>
+          <a href="scripts/fetch_all_5570_ibge.py" target="_blank" class="chip-btn" style="text-decoration:none;padding:10px 16px">Coletor API IBGE (Python) ↗</a>
+          <a href="metodologia.html" class="chip-btn" style="text-decoration:none;padding:10px 16px">Nota Metodológica →</a>
+          <a href="autor.html" class="chip-btn" style="text-decoration:none;padding:10px 16px">Quem Produziu →</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="cols" style="grid-template-columns: 1.6fr 1fr 1fr">
+        <div>
+          <strong style="font:700 18px var(--font-display);color:var(--color-ink)">Atlas do Voto e da População</strong>
+          <p style="margin-top:8px;max-width:42ch">
+            Jornalismo visual de dados cruzando os 5.571 municípios do IBGE (Estimativas 2024 e Censo 2022) com o ciclo eleitoral e fiscal brasileiro de 2024 a 2026 (TSE).
+          </p>
+          <p style="margin-top:12px;font-size:12.5px;color:var(--ink-muted)">
+            Produzido por <a href="autor.html" style="display:inline;color:var(--color-ink);font-weight:600;text-decoration:underline">Christian Basilio Oliveira</a>
+            · <a href="https://www.linkedin.com/in/christianbasilio/" target="_blank" rel="noopener" style="display:inline;color:var(--ink-muted);text-decoration:underline">LinkedIn</a>
+            · <a href="https://civikadata.netlify.app/" target="_blank" rel="noopener" style="display:inline;color:var(--ink-muted);text-decoration:underline">Civika Data</a>
+          </p>
+        </div>
+        <div>
+          <h4>Fontes Primárias</h4>
+          <a href="https://www.ibge.gov.br/estatisticas/sociais/populacao/9103-estimativas-de-populacao.html" target="_blank" rel="noopener">IBGE · Estimativas 2024</a>
+          <a href="https://censo2022.ibge.gov.br/" target="_blank" rel="noopener">IBGE · Censo Demográfico 2022</a>
+          <a href="https://dadosabertos.tse.jus.br/" target="_blank" rel="noopener">TSE · Portal de Dados Abertos</a>
+          <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">TSE · Resultados Eleitorais</a>
+        </div>
+        <div>
+          <h4>Coletores Python e Metodologia</h4>
+          <a href="scripts/fetch_all_5570_ibge.py" target="_blank">Coletor API IBGE (SIDRA 6579 e 4714)</a>
+          <a href="scripts/build_all_5570_dataset.py" target="_blank">Construtor da Base Municipal</a>
+          <a href="scripts/update_2026_governors_senators_president.py" target="_blank">Atualizador Eleitoral TSE (2024 a 2026)</a>
+          <a href="metodologia.html">Documentação e Fórmulas</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bibliotecas JS (D3.js v7, Three.js r128, GSAP + ScrollTrigger, Leaflet) -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- Bundle Completo dos 5.571 Municípios + Presidência/Senado/Governadores + Scripts -->
+  <script src="data/brasil_data.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

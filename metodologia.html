@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metodologia e Fontes: Atlas do Voto e da População (IBGE e TSE)</title>
+  <link rel="stylesheet" href="styles/fonts.css">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <header class="pudding-header">
+    <a href="index.html" class="wordmark-link">
+      <span class="wordmark-title">Atlas do Voto e da População</span>
+      <span class="wordmark-sub">NOTA METODOLÓGICA · IBGE 2024 E TSE 2022 A 2026</span>
+    </a>
+  </header>
+
+  <main class="wrap" style="padding-top:44px;padding-bottom:80px">
+    <div style="margin-bottom:24px">
+      <a href="index.html" class="chip-btn" style="text-decoration:none;padding:8px 14px">← Voltar ao Atlas</a>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:24px">
+      <article class="chart-sheet">
+        <span class="kicker">1. FONTES DEMOGRÁFICAS (API OFICIAL IBGE)</span>
+        <h3 class="heading" style="margin:8px 0 12px">Todos os 5.571 Municípios do Brasil</h3>
+        <dl class="spec">
+          <div><dt>Localidades IBGE</dt><dd>5.571 municípios oficiais (código IBGE, nome, UF e região)</dd></div>
+          <div><dt>SIDRA Tabela 6579</dt><dd>Estimativas da População 2024 (ref. 01/07/2024)</dd></div>
+          <div><dt>SIDRA Tabela 4714</dt><dd>Censo Demográfico 2022 (população recenseada e área em km²)</dd></div>
+        </dl>
+      </article>
+
+      <article class="chart-sheet">
+        <span class="kicker">2. FONTES ELEITORAIS E FISCAIS (TSE, CÂMARA, SENADO E BC)</span>
+        <h3 class="heading" style="margin:8px 0 12px">Ciclo Eleitoral 2024 a 2026</h3>
+        <dl class="spec">
+          <div><dt>Eleições Municipais 2024</dt><dd>Prefeituras, vereadores, comparecimento, gênero, raça e FEFC</dd></div>
+          <div><dt>Presidência e Governos</dt><dd>Resultados oficiais do 2º Turno 2022 por UF e 27 governadores</dd></div>
+          <div><dt>Congresso Nacional</dt><dd>513 deputados federais, 81 senadores (54 em 2026) e 1.059 estaduais</dd></div>
+        </dl>
+      </article>
+    </div>
+
+    <div class="chart-sheet">
+      <span class="kicker">3. REPRODUTIBILIDADE E DOWNLOAD DIRETO</span>
+      <h3 class="heading" style="margin:8px 0 12px">Datasets Processados em Python</h3>
+      <p style="font-family:var(--font-sans);font-size:14.5px;margin-bottom:14px">
+        Todos os arquivos podem ser auditados ou regerados executando <code>python scripts/fetch_all_5570_ibge.py</code>, <code>python scripts/build_all_5570_dataset.py</code>, <code>python scripts/add_governors_congress_data.py</code> e <code>python scripts/add_presidential_data.py</code>.
+      </p>
+      <div class="viz-toolbar">
+        <a href="scripts/fetch_all_5570_ibge.py" target="_blank" class="chip-btn active" style="text-decoration:none;padding:9px 14px">Coletor API IBGE (fetch_all_5570_ibge.py) ↗</a>
+        <a href="scripts/build_all_5570_dataset.py" target="_blank" class="chip-btn" style="text-decoration:none;padding:9px 14px">Processador Municipal (build_all_5570_dataset.py) ↗</a>
+        <a href="scripts/update_2026_governors_senators_president.py" target="_blank" class="chip-btn" style="text-decoration:none;padding:9px 14px">Mapeador TSE 2024 a 2026 ↗</a>
+      </div>
+      <p style="margin-top:16px;font-size:12.5px;color:var(--ink-muted);font-family:var(--font-sans)">
+        Produzido por <a href="https://www.linkedin.com/in/christianbasilio/" target="_blank" rel="noopener" style="color:var(--color-ink);font-weight:600">Christian Basilio Oliveira</a> · <a href="https://civikadata.netlify.app/" target="_blank" rel="noopener" style="color:var(--ink-muted)">Civika Data</a>
+      </p>
+    </div>
+  </main>
+</body>
+</html>

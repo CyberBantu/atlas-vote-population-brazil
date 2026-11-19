@@ -1,0 +1,6 @@
+# Arquivos de referência brutos e caches locais
+.archive/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
